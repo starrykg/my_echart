@@ -36,154 +36,213 @@ class App extends  Component{
         this.getEchart(this.state.req);
     }
 
+    getColor(){
+        return 'yellow'
+    }
+
     getEchart(req){
         var self = this;
-        $.getJSON(ROOT_PATH + '127.0.0.1:3000/display/topo?ip=' + req, function (resp) {
+        $.getJSON(ROOT_PATH + '127.0.0.1:3000/display/info?ip=' + req, function (resp) {
             self.setState({req : req});
             var graph = resp.data
-            console.log("llllllllllllllllllllllllllllllllllll",graph.ts)
-             if (graph.ts > self.state.ts) {
-                 self.setState({ts : graph.ts,ips : graph.ips});
-                console.log("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",req);
-                var chartDom = document.getElementById('chartDom');
-                var myChart = echarts.init(chartDom);
-                var option;
-
-                myChart.showLoading();
-                //self.getData()
-                console.log("graph==================================",graph)
-                myChart.hideLoading();
-                option = {
-                    title: {
-                        align: 'left',
-                        text: 'Topo'
-                    },
-                    tooltip: {
-                        formatter: (value) => {
-                            console.log("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",value)
-                            var str = ""
-                            if (value.data.val != null){
-
-                                str =  '<div><span>value.data.label.formatter</span>'+value.val+'</div>' +
-                                    '<div><span>port：</span>'+value.data.val+'</div>' +
-                                    '<div><span>ps：</span>'+value.data.val+'</div>';
+            self.setState({ts : graph.ts,ips : graph.ips});
+            //基于准备好的DOM初始化echarts实例
+            let dom1 = document.querySelector('.box1');
+            let dom2 = document.querySelector('.box2');
+            //创建echarts实例
+            let mycharts1 = echarts.init(dom1);
+            let mycharts2 = echarts.init(dom2);
+            //指定图表的配置项与数据
+            mycharts1.setOption({
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}({d}%)'
+                },
+                toolbox: {
+                    show: false
+                },
+                //series:graph.Charts1,
+                series:[
+                    {
+                        name: 'CPU',
+                        type: 'pie',
+                        radius: ["50", "90"],
+                        center: ['50%', '25%'],
+                        roseType: 'radius',
+                        data: [
+                            {value: 40, name: 'free'},
+                            {value: 60, name: 'used'}
+                        ],
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'center',
+                                color:'#4c4a4a',
+                                formatter: 'CPU 60%',
+                                fontSize: 18
+                            },
+                            emphasis: {//中间文字显示
+                                show: true,
                             }
-                            if (value.value != null) {
-                                var optStatus =
-                                    value.name === null
-                                        ? "-"
-                                        : value.name
-                                var adminStatus =
-                                    value.name === null
-                                        ? "-"
-                                        : value.name
-                                str =
-                                    "<b>" +
-                                    value.name +
-                                    "</b><br/>" +
-                                    "运行状态：" +
-                                    optStatus +
-                                    "<br/>" +
-                                    "管理状态：" +
-                                    adminStatus +
-                                    "<br/>"
-                                if (value.value != null) {
-                                    str +=
-                                        "告警信息：" +
-                                        "<br/>" +
-                                        "<div style='width:15px;height:15px;border-radius:50%;background:" +
-                                        "#F56C6C" +
-                                        "'><span style='left: 30px;position: absolute'>严重告警:" + value.value + "<span></div>" +
-                                        "<div style='width:15px;height:15px;border-radius:50%;background:" +
-                                        "#E6A23C" +
-                                        "'><span style='left: 30px;position: absolute'>主要告警:" + value.value + "<span></div>" +
-                                        "<div style='width:15px;height:15px;border-radius:50%;background:" +
-                                        "#f4ea2a"+
-                                        "'><span style='left: 30px;position: absolute'>次要告警:" + value.value + "<span></div>" +
-                                        "<div style='width:15px;height:15px;border-radius:50%;background:" +
-                                        "#409EFF" +
-                                        "'><span style='left: 30px;position: absolute'>普通告警:" + value.value + "<span></div>"
-                                }
+                        }
+                    },
+                    {
+                        name: 'Memory',
+                        type: 'pie',
+                        radius: [50, 90],
+                        center: ['51%', '48%'],
+                        roseType: 'radius',
+                        data: [
+                            {value: 51, name: 'free'},
+                            {value: 23, name: 'used'}
+                        ],
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'center',
+                                color:'#4c4a4a',
+                                formatter: 'Memory 60%',
+                                fontSize: 18
+                            },
+                            emphasis: {//中间文字显示
+                                show: true,
                             }
-                            return str
                         }
                     },
-                    legend: [
-                        {
-                            data: graph.categories.map(function (a) {
-                                return a.name;
-                            })
+                    {
+                        name: 'Disk',
+                        type: 'pie',
+                        radius: [50, 90],
+                        center: ['50%', '75%'],
+                        roseType: 'radius',
+                        data: [
+                            {value: 33, name: 'free'},
+                            {value: 67, name: 'used'}
+                        ],
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'center',
+                                color:'#4c4a4a',
+                                formatter: 'Disk 40%',
+                                fontSize: 18
+                            },
+                            emphasis: {//中间文字显示
+                                show: true,
+                            }
                         }
-                    ],
-                    series: [
-                        {
-                            name: 'Topo',
-                            type: 'graph',
-                            markPoint:'roundRect',
-                            edgeSymbol: ['','arrow'],
-                            edgeSymbolSize: 10,  /*边两端的标记大小，可以是一个数组分别指定两端，也可以是单个统一指定*/
-                            layout: 'none',  /* 图的布局, 'none' 不采用任何布局接口xy指定位置, 'circular' 采用环形布局,'force' 采用力引导布局*/
-                            data: graph.nodes,
-                            links: graph.links,
-                            categories: graph.categories, /*节点分类的类目*/
-                            roam: true, /*是否开启鼠标缩放和平移漫游*/
-                            draggable: true, /*是否支持拖拽   只有layout 为 force 的时候才可以用*/
-                            focusNodeAdjacency: true,  //鼠标放置上去 显示当前的连接
-                            animation: true, //是否需要加载
-                            animationDurationUpdate: 2000,//加载动画时间
-                            label: {
-                                show: true
-                            },
-                            edgeLabel: {
-                                fontSize: 20
-                            },
-                            /*labelLayout: {
-                                hideOverlap: true /!*是否隐藏重叠的标签*!/
-                            },*/
-                            scaleLimit: {
-                                min: 0.4,
-                                max: 2
-                            },
-                            lineStyle: {
-                                color: 'source',
-                                curveness: 0.3
-                            },
+                    }
+                ]
+            });
+            //第二个图表的配置项
+            //const colors = ['#5470C6', '#91CC75', '#EE6666'];
+
+            mycharts2.setOption({
+                //color: colors,
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    }
+                },
+/*                grid: {
+                    right: '20%'
+                },*/
+/*                toolbox: {
+                    show: true
+                },*/
+                legend: {
+                    data: ['Normal', 'Warning', 'Critical', 'Fatal', 'Online gNodeB', 'Online UE']
+                },
+                xAxis: {
+                        type: 'time',
+/*                        axisTick: {
+                            alignWithLabel: true
+                        },*/
+                        boundaryGap: false,
+                        name: 'time',
+                        axisLabel:{
+                            interale: 0,
+                            rotate: -40,
+                            formatter: function (value) {
+
+                                var t_date = new Date(value);
+
+                                return [t_date.getFullYear(), t_date.getMonth() + 1, t_date.getDate()].join('/') + " "
+
+                                    + [t_date.getHours(), t_date.getMinutes(), t_date.getSeconds()].join(':');
+
+                            }
                         }
-                    ],
-                    force: {
-                        layoutAnimation: false
                     },
-                    left:'center',
-                    top : 'middle'
-                };
-                myChart.setOption(option);
-                /*            myChart.on("click", params => {
-                                var option = myChart.getOption();
-                                const { properties, dataIndex, nodeType } = params.event.target
-                                option.prevIndex = dataIndex
-                                option.highlight(dataIndex, myChart)
-                                const entityProperties = {
-                                    ...properties,
-                                    type: nodeType
-                                }
-                                this.$store.commit("jobInstance/SET_HIGHLIGHTENTITY", entityProperties);
-                            });
-                            myChart.on('mouseover', e => {
-                                let op = myChart.getOption()
-                                myChart.dispatchAction({
-                                    type: 'downplay',
-                                    seriesIndex: 0,
-                                    dataIndex: e.dataIndex,
-                                    color: e.color
-                                })
-                                myChart.setOption(op, true)
-                            })*/
-                myChart.on("mouseover", _ => {
-                    myChart.dispatchAction({
-                        type: 'downplay'
-                    });
-                })
-            }
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: 'number',
+                        position: 'left',
+                        alignTicks: true,
+                        axisLine: {
+                            show: true,
+/*                            lineStyle: {
+                               // color: colors[2]
+                            }*/
+                        },
+/*                        axisLabel: {
+                            formatter: '{value}'
+                        }*/
+                    }
+                ],
+                series: [
+                    {
+                        name: 'Normal',
+                        type: 'bar',
+                        //center: ['50%', '100%'],
+                        data: [
+                            ['2020-11-26 00:00:00',2], ['2020-11-26 00:01:00',12],['2020-11-26 00:02:00',22],['2020-11-26 00:03:00',3],['2020-11-26 00:05:00',7],['2020-11-26 00:06:00',2],['2020-11-26 00:07:00',2],['2020-11-26 00:08:00',2],['2020-11-26 00:09:00',2],['2020-11-26 00:10:00',12],['2020-11-26 00:11:00',2],['2020-11-26 00:12:00',2],['2020-11-26 00:13:00',15],
+                        ]
+                    },
+                    {
+                        name: 'Warning',
+                        type: 'bar',
+                        //center: ['50%', '100%'],
+                        data: [
+                            ['2020-11-26 00:00:00',2], ['2020-11-26 00:01:00',12],['2020-11-26 00:02:00',3],['2020-11-26 00:03:00',23],['2020-11-26 00:05:00',7],['2020-11-26 00:06:00',2],['2020-11-26 00:07:00',2],['2020-11-26 00:08:00',4],['2020-11-26 00:09:00',12],['2020-11-26 00:10:00',4],['2020-11-26 00:11:00',17],['2020-11-26 00:12:00',11],['2020-11-26 00:13:00',5],
+                        ]
+                    },
+                    {
+                        name: 'Critical',
+                        type: 'bar',
+                        //center: ['50%', '100%'],
+                        data: [
+                            ['2020-11-26 00:00:00',12], ['2020-11-26 00:01:00',3],['2020-11-26 00:02:00',11],['2020-11-26 00:03:00',3],['2020-11-26 00:05:00',7],['2020-11-26 00:06:00',2],['2020-11-26 00:07:00',2],['2020-11-26 00:08:00',3],['2020-11-26 00:09:00',2],['2020-11-26 00:10:00',12],['2020-11-26 00:11:00',3],['2020-11-26 00:12:00',4],['2020-11-26 00:13:00',5],
+                        ]
+                    },
+                    {
+                        name: 'Fatal',
+                        type: 'bar',
+                        //center: ['50%', '100%'],
+                        data: [
+                            ['2020-11-26 00:00:00',21], ['2020-11-26 00:01:00',5],['2020-11-26 00:02:00',22],['2020-11-26 00:03:00',13],['2020-11-26 00:05:00',7],['2020-11-26 00:06:00',2],['2020-11-26 00:07:00',2],['2020-11-26 00:08:00',2],['2020-11-26 00:09:00',5],['2020-11-26 00:10:00',4],['2020-11-26 00:11:00',7],['2020-11-26 00:12:00',2],['2020-11-26 00:13:00',5],
+                        ]
+                    },
+                    {
+                        name: 'Online gNodeB',
+                        type: 'line',
+                        //center: ['50%', '100%'],
+                        data: [
+                            ['2020-11-25 23:59:22',3], ['2020-11-26 00:01:00',15],['2020-11-26 00:02:00',22],['2020-11-26 00:03:00',13],['2020-11-26 00:05:00',7],['2020-11-26 00:06:00',2],['2020-11-26 00:07:00',2],['2020-11-26 00:08:00',2],['2020-11-26 00:09:00',5],['2020-11-26 00:10:00',4],['2020-11-26 00:11:00',7],['2020-11-26 00:12:00',2],['2020-11-26 00:13:00',5],
+                        ]
+                    },
+                    {
+                        name: 'Online UE',
+                        type: 'line',
+                        //center: ['50%', '100%'],
+                        data: [
+                            ['2020-11-26 00:00:11',22], ['2020-11-26 00:01:00',4],['2020-11-26 00:02:00',22],['2020-11-26 00:03:00',13],['2020-11-26 00:05:00',7],['2020-11-26 00:06:00',2],['2020-11-26 00:07:00',2],['2020-11-26 00:08:00',2],['2020-11-26 00:09:00',5],['2020-11-26 00:10:00',4],['2020-11-26 00:11:00',7],['2020-11-26 00:12:00',2],['2020-11-26 00:13:00',5],
+                        ]
+                    }
+                    ]
+            })
         });
     }
 
@@ -216,9 +275,10 @@ class App extends  Component{
                         {this.showIp()}
                     </select>
                 </div>
-                <div id = "chartDom" style={{width:2000,height:1000}}>
-                </div>
+                    <div className="box1" id = "box1" style={{float:"left",width:"25%",height:1000}}></div>
+                    <div className="box2" id = "box2" style={{float:"left",width:"75%",height:1000}}></div>
             </div>
+
         )
     }
 
